@@ -1,0 +1,9 @@
+{
+  "name": "System Override - Red Level",
+  "description": "A high-fidelity cybersecurity breach simulation designed for immersive theatrical effect.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
