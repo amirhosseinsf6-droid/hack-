@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import MatrixRain from './components/MatrixRain';
 import Terminal from './components/Terminal';
 import NetworkGraph from './components/NetworkGraph';
@@ -7,134 +7,138 @@ import { SecurityLevel } from './types';
 import { soundEngine } from './utils/sound';
 
 const App: React.FC = () => {
-  const [started, setStarted] = useState(false);
+  const [phase, setPhase] = useState<'landing' | 'scanning' | 'terminal'>('landing');
   const [securityLevel, setSecurityLevel] = useState<SecurityLevel>(SecurityLevel.SAFE);
+  const [location, setLocation] = useState<{ lat: number, lng: number } | undefined>();
+  const videoRef = useRef<HTMLVideoElement>(null);
 
-  const startHack = () => {
+  const startSequence = async () => {
     soundEngine.init();
-    soundEngine.playBeep(600, 'sine', 0.2);
-    setStarted(true);
+    soundEngine.playBeep(800, 'square', 0.2);
+    setPhase('scanning');
+
+    // Request permissions for immersion
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      if (videoRef.current) videoRef.current.srcObject = stream;
+      
+      navigator.geolocation.getCurrentPosition((pos) => {
+        setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      });
+    } catch (e) {
+      console.log("Permissions denied - continuing in simulation mode");
+    }
+
+    // Progress to terminal after "scan"
+    setTimeout(() => {
+      setPhase('terminal');
+      soundEngine.playAlarm();
+    }, 4000);
   };
 
-  if (!started) {
+  if (phase === 'landing') {
     return (
       <div className="w-full h-screen bg-black flex items-center justify-center relative overflow-hidden">
-        <MatrixRain />
-        <div className="z-10 text-center space-y-6 max-w-md p-8 border border-green-500/30 bg-black/80 backdrop-blur-sm">
-          <h1 className="text-4xl md:text-6xl font-bold text-green-500 font-mono tracking-tighter">
-            SYSTEM LOCKED
-          </h1>
-          <p className="text-green-400/70 font-mono">
-            SECURE CONNECTION REQUIRED FOR DIAGNOSTICS
-          </p>
+        <MatrixRain color="#030" />
+        <div className="z-10 text-center space-y-8 p-12 border border-green-500/20 bg-black/90 backdrop-blur-xl shadow-[0_0_50px_rgba(0,255,0,0.1)]">
+          <div className="space-y-2">
+            <h1 className="text-5xl font-black text-green-500 tracking-[0.2em] glitch">RESTRICTED</h1>
+            <p className="text-green-500/50 font-mono text-sm tracking-widest">AUTHORIZED PERSONNEL ONLY // LEVEL 4 CLEARANCE</p>
+          </div>
           <button 
-            onClick={startHack}
-            className="group relative px-8 py-4 bg-transparent border-2 border-green-500 text-green-500 font-mono font-bold uppercase tracking-widest hover:bg-green-500 hover:text-black transition-all duration-300"
+            onClick={startSequence}
+            className="px-12 py-4 border border-green-500 text-green-500 font-mono hover:bg-green-500 hover:text-black transition-all duration-500 group"
           >
-            <span className="absolute inset-0 w-full h-full bg-green-500/10 group-hover:bg-transparent transition-all"></span>
-            Initialize
+            INITIALIZE UPLINK
+            <div className="h-[1px] w-0 bg-current group-hover:w-full transition-all duration-500 mt-1"></div>
           </button>
         </div>
-        <div className="scanlines"></div>
       </div>
     );
   }
 
-  // Visual effects based on level
+  if (phase === 'scanning') {
+    return (
+      <div className="w-full h-screen bg-black flex flex-col items-center justify-center relative font-mono">
+        <div className="w-64 h-64 border-2 border-green-500/50 relative overflow-hidden rounded-lg bg-black/80">
+          <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover opacity-60 grayscale scale-x-[-1]" />
+          <div className="scanner-line"></div>
+          <div className="absolute inset-0 border-[20px] border-black/20"></div>
+        </div>
+        <div className="mt-8 space-y-2 text-center">
+          <p className="text-green-500 animate-pulse tracking-widest">BIOMETRIC_SCAN_IN_PROGRESS...</p>
+          <div className="text-[10px] text-green-500/40 uppercase">
+             {location ? `LOC: ${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}` : 'GATHERING_COORDINATES...'}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const isCritical = securityLevel === SecurityLevel.CRITICAL;
   const isBreach = securityLevel === SecurityLevel.BREACH || isCritical;
-  
-  const borderColor = isBreach ? 'border-red-600' : 'border-green-600';
-  const textColor = isBreach ? 'text-red-500' : 'text-green-500';
-  const bgColor = isCritical ? 'bg-red-900/10' : 'bg-black';
 
   return (
-    <div className={`w-full h-screen ${bgColor} ${isCritical ? 'shake' : ''} transition-colors duration-1000 overflow-hidden relative flex flex-col`}>
-      {/* Background Effect */}
-      <MatrixRain color={isBreach ? '#F00' : '#0F0'} />
-      <div className="scanlines"></div>
+    <div className={`w-full h-screen bg-black transition-colors duration-1000 overflow-hidden relative flex flex-col`}>
+      <MatrixRain color={isBreach ? '#600' : '#030'} />
 
-      {/* FLASHING RED ALERT OVERLAY */}
-      {isCritical && (
-        <div className="absolute inset-0 bg-red-600/20 z-40 pointer-events-none animate-pulse flex items-center justify-center">
-            <h1 className="text-6xl md:text-9xl font-black text-red-600 tracking-widest opacity-50 rotate-12 border-4 border-red-600 p-10">
-                LOCKED
-            </h1>
-        </div>
-      )}
+      {isCritical && <div className="absolute inset-0 bg-red-900/10 z-50 pointer-events-none animate-pulse"></div>}
 
       {/* Header */}
-      <header className={`relative z-10 flex justify-between items-center p-4 border-b ${borderColor} bg-black/80 backdrop-blur`}>
-        <div className="flex items-center gap-4">
-            <div className={`w-3 h-3 rounded-full ${isBreach ? 'bg-red-500 animate-ping' : 'bg-green-500'}`}></div>
-            <h1 className={`text-xl font-mono font-bold ${textColor}`}>
-                {isCritical ? 'SYSTEM FAILURE // CRITICAL ERROR' : 'SECURE TERMINAL V.4.0.2'}
+      <header className="relative z-10 flex justify-between items-center p-3 border-b border-white/10 bg-black/60 backdrop-blur-md">
+        <div className="flex items-center gap-3">
+            <div className={`w-2 h-2 rounded-full ${isBreach ? 'bg-red-500 animate-ping' : 'bg-green-500'}`}></div>
+            <h1 className={`text-sm md:text-lg font-bold tracking-tighter ${isBreach ? 'text-red-500' : 'text-green-500'}`}>
+                {isCritical ? 'CRITICAL_SYSTEM_FAILURE' : 'CORE_NETWORK_TERMINAL'}
             </h1>
         </div>
-        <div className={`text-xs font-mono ${textColor}`}>
-            IP: {isBreach ? '10.22.44.1 [EXPOSED]' : '192.168.x.x [MASKED]'}
+        <div className="text-[10px] opacity-40">
+            {new Date().toLocaleTimeString()} // v7.0.4-BETA
         </div>
       </header>
 
       {/* Main Grid */}
-      <main className="relative z-10 flex-1 p-4 grid grid-cols-1 md:grid-cols-12 gap-4 overflow-hidden">
+      <main className="relative z-10 flex-1 p-2 md:p-4 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 overflow-hidden">
         
-        {/* Left Col - Stats & Map */}
-        <div className="hidden md:flex md:col-span-3 flex-col gap-4">
-            <div className="flex-1 min-h-0">
-                <NetworkGraph level={securityLevel} />
-            </div>
-            <div className="flex-1 min-h-0">
-                <SystemMonitor level={securityLevel} />
-            </div>
+        {/* Left Col */}
+        <div className="hidden md:flex md:col-span-3 flex-col gap-4 overflow-hidden">
+            <NetworkGraph level={securityLevel} />
+            <SystemMonitor level={securityLevel} />
         </div>
 
-        {/* Center - Terminal */}
-        <div className="col-span-1 md:col-span-6 h-full min-h-[300px]">
-            <Terminal level={securityLevel} setLevel={setSecurityLevel} />
+        {/* Center */}
+        <div className="col-span-1 md:col-span-6 h-full overflow-hidden">
+            <Terminal level={securityLevel} setLevel={setSecurityLevel} location={location} />
         </div>
 
-        {/* Right Col - Visual Data */}
-        <div className="hidden md:flex md:col-span-3 flex-col gap-4">
-             {/* Fake file system view */}
-            <div className={`flex-1 border ${borderColor} bg-black/80 p-4 font-mono text-xs overflow-hidden`}>
-                <div className={`border-b ${borderColor} mb-2 pb-1 ${textColor}`}>DIRECTORY LISTING</div>
-                <div className={`${isBreach ? 'text-red-400' : 'text-green-400'} space-y-1`}>
-                    <p>drwx------ root /etc/shadow</p>
-                    <p>drwx------ root /home/admin/.ssh</p>
-                    <p>drwxr-xr-x user /var/www/html</p>
-                    {isBreach && (
-                        <>
-                        <p className="animate-pulse text-red-500 font-bold">{'>'} UPLOADING: bank_details.dat</p>
-                        <p className="animate-pulse text-red-500 font-bold">{'>'} UPLOADING: passwords.txt</p>
-                        <p className="animate-pulse text-red-500 font-bold">{'>'} DELETING: sys_boot.ini</p>
-                        </>
-                    )}
+        {/* Right Col */}
+        <div className="hidden md:flex md:col-span-3 flex-col gap-4 overflow-hidden">
+            <div className="flex-1 border border-white/10 bg-black/40 p-3 font-mono text-[10px] uppercase">
+                <div className="border-b border-white/10 mb-2 pb-1 text-green-500/60">ACTIVE_PROCESSES</div>
+                <div className="space-y-1 text-green-500/40">
+                    <p>sh -i /bin/bash</p>
+                    <p>python3 payload.py --inject</p>
+                    <p>nc -lvp 4444</p>
+                    {isBreach && <p className="text-red-500 animate-bounce">! DATA_EXFIL_STARTED</p>}
                 </div>
             </div>
-
-            {/* Fake Image Analysis */}
-            <div className={`h-1/3 border ${borderColor} bg-black/80 p-2 relative overflow-hidden`}>
-                <div className={`absolute top-2 left-2 text-[10px] ${textColor}`}>CAM_01 [REC]</div>
-                {/* Random noise boxes suggesting image recognition */}
-                <div className={`absolute top-1/2 left-1/3 w-12 h-12 border-2 ${borderColor} opacity-50 animate-bounce`}></div>
-                <div className="w-full h-full bg-[url('https://picsum.photos/400/300?grayscale')] bg-cover opacity-20 bg-center"></div>
+            <div className="h-48 border border-white/10 bg-black/40 relative overflow-hidden">
+                 <div className="absolute top-1 left-1 text-[8px] z-10 bg-black/80 px-1">SURVEILLANCE_NODE_01</div>
+                 <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover opacity-30 grayscale contrast-150" />
             </div>
-        </div>
-
-        {/* Mobile-only visible blocks (simplified) */}
-        <div className="md:hidden col-span-1 h-32">
-             <SystemMonitor level={securityLevel} />
         </div>
 
       </main>
 
-        {/* Footer */}
-      <footer className={`relative z-10 p-2 border-t ${borderColor} bg-black text-[10px] ${textColor} font-mono flex justify-between uppercase`}>
-        <span>SESSION_ID: {Math.random().toString(36).substring(7)}</span>
-        <span className={isCritical ? "animate-pulse font-bold" : ""}>
-            STATUS: {securityLevel}
-        </span>
+      {/* Footer */}
+      <footer className="relative z-10 p-2 border-t border-white/10 bg-black/80 text-[9px] text-green-500/50 flex justify-between uppercase font-mono">
+        <div className="flex gap-4">
+            <span>NODE: {location ? `${location.lat.toFixed(2)}N` : 'PROXY_01'}</span>
+            <span>UPLINK: ACTIVE</span>
+        </div>
+        <div className={isCritical ? "text-red-500 font-bold" : ""}>
+            THREAT_LEVEL: {securityLevel}
+        </div>
       </footer>
     </div>
   );

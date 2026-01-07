@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SYSTEM OVERRIDE // CRITICAL</title>
+    <title>TERMINAL // OVERRIDE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
@@ -13,69 +13,110 @@
         margin: 0;
         font-family: 'Share Tech Mono', monospace;
         overflow: hidden;
+        color: #0f0;
       }
 
-      /* CRT Scanline Effect */
-      .scanlines {
-        background: linear-gradient(
-          to bottom,
-          rgba(255, 255, 255, 0),
-          rgba(255, 255, 255, 0) 50%,
-          rgba(0, 0, 0, 0.2) 50%,
-          rgba(0, 0, 0, 0.2)
-        );
-        background-size: 100% 4px;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 50;
+      /* CRT Effect */
+      .crt::before {
+        content: " ";
+        display: block;
+        position: absolute;
+        top: 0; left: 0; bottom: 0; right: 0;
+        background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+        z-index: 100;
+        background-size: 100% 2px, 3px 100%;
         pointer-events: none;
       }
 
-      .flicker {
+      .crt::after {
+        content: " ";
+        display: block;
+        position: absolute;
+        top: 0; left: 0; bottom: 0; right: 0;
+        background: rgba(18, 16, 16, 0.1);
+        opacity: 0;
+        z-index: 100;
+        pointer-events: none;
         animation: flicker 0.15s infinite;
       }
 
       @keyframes flicker {
-        0% { opacity: 0.9; }
-        50% { opacity: 1.0; }
-        100% { opacity: 0.9; }
+        0% { opacity: 0.27861; }
+        5% { opacity: 0.34769; }
+        10% { opacity: 0.23604; }
+        15% { opacity: 0.90626; }
+        20% { opacity: 0.18128; }
+        25% { opacity: 0.83891; }
+        30% { opacity: 0.65583; }
+        35% { opacity: 0.57807; }
+        40% { opacity: 0.26559; }
+        45% { opacity: 0.84693; }
+        50% { opacity: 0.96019; }
+        55% { opacity: 0.08523; }
+        60% { opacity: 0.71056; }
+        65% { opacity: 0.73437; }
+        70% { opacity: 0.8523; }
+        75% { opacity: 0.11823; }
+        80% { opacity: 0.36714; }
+        85% { opacity: 0.01605; }
+        90% { opacity: 0.78483; }
+        95% { opacity: 0.54856; }
+        100% { opacity: 0.235; }
       }
 
-      .shake {
-        animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite;
+      .glitch {
+        animation: glitch 1s linear infinite;
       }
 
-      @keyframes shake {
-        10%, 90% { transform: translate3d(-1px, 0, 0); }
-        20%, 80% { transform: translate3d(2px, 0, 0); }
-        30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-        40%, 60% { transform: translate3d(4px, 0, 0); }
+      @keyframes glitch {
+        2%, 64% { transform: translate(2px, 0) skew(0deg); }
+        4%, 60% { transform: translate(-2px, 0) skew(0deg); }
+        62% { transform: translate(0, 0) skew(5deg); }
       }
 
-      /* Scrollbar hiding for terminal */
-      .no-scrollbar::-webkit-scrollbar {
-        display: none;
+      .scanlines {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+        background-size: 100% 4px;
+        z-index: 101;
+        pointer-events: none;
       }
-      .no-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
+
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+      .scanner-line {
+        height: 2px;
+        background: rgba(0, 255, 0, 0.5);
+        position: absolute;
+        width: 100%;
+        z-index: 20;
+        animation: scan 3s linear infinite;
+      }
+
+      @keyframes scan {
+        0% { top: 0; }
+        100% { top: 100%; }
       }
     </style>
-  <script type="importmap">
+    <script type="importmap">
 {
   "imports": {
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
     "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "d3": "https://aistudiocdn.com/d3@^7.9.0"
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0",
+    "d3": "https://aistudiocdn.com/d3@^7.9.0",
+    "@google/genai": "https://esm.run/@google/genai",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/"
   }
 }
 </script>
-</head>
-  <body>
+  </head>
+  <body class="crt">
     <div id="root"></div>
+    <div class="scanlines"></div>
+    <!-- Entry script must be module to handle imports -->
+    <script type="module" src="index.tsx"></script>
   </body>
 </html>

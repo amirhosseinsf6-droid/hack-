@@ -1,6 +1,6 @@
 {
-  "name": "System Override - Red Level",
-  "description": "A high-fidelity cybersecurity breach simulation designed for immersive theatrical effect.",
+  "name": "VOID - Terminal Override",
+  "description": "Ultra-immersive cybersecurity breach simulation using AI-generated logs and biometric interaction.",
   "requestFramePermissions": [
     "camera",
     "microphone",
