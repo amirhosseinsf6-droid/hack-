@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { SecurityLevel } from '../types';
 
@@ -6,62 +7,54 @@ interface SystemMonitorProps {
 }
 
 const SystemMonitor: React.FC<SystemMonitorProps> = ({ level }) => {
-  const [cpu, setCpu] = useState(12);
-  const [ram, setRam] = useState(24);
-  const [network, setNetwork] = useState(45);
+  const [vitals, setVitals] = useState({ pulse: 72, corruption: 5, breach: 12 });
 
   useEffect(() => {
-    const updateStats = () => {
-      let volatility = 5;
-      if (level === SecurityLevel.WARNING) volatility = 15;
-      if (level === SecurityLevel.BREACH) volatility = 40;
-      if (level === SecurityLevel.CRITICAL) volatility = 80;
-
-      setCpu(prev => Math.min(100, Math.max(0, prev + (Math.random() * volatility - volatility/2))));
-      setRam(prev => Math.min(100, Math.max(0, prev + (Math.random() * volatility - volatility/2))));
-      setNetwork(prev => Math.min(100, Math.max(0, prev + (Math.random() * volatility - volatility/2))));
+    const update = () => {
+      setVitals(prev => ({
+        pulse: 70 + Math.random() * 40 + (level === SecurityLevel.CRITICAL ? 60 : 0),
+        corruption: Math.min(100, prev.corruption + Math.random() * 2),
+        breach: Math.min(100, Math.max(0, prev.breach + (Math.random() * 10 - 4)))
+      }));
     };
-
-    const interval = setInterval(updateStats, 200);
-    return () => clearInterval(interval);
+    const itv = setInterval(update, 500);
+    return () => clearInterval(itv);
   }, [level]);
 
-  const Bar: React.FC<{ label: string; val: number; color: string }> = ({ label, val, color }) => (
-    <div className="mb-4">
-      <div className="flex justify-between text-xs mb-1">
-        <span>{label}</span>
-        <span>{val.toFixed(1)}%</span>
-      </div>
-      <div className="h-2 w-full bg-gray-900">
-        <div 
-            className={`h-full transition-all duration-200 ${color}`} 
-            style={{ width: `${val}%` }}
-        />
-      </div>
+  const Metric = ({ label, val, color }: any) => (
+    <div className="mb-3">
+        <div className="flex justify-between text-[10px] uppercase mb-0.5 tracking-tighter">
+            <span>{label}</span>
+            <span className={color}>{val.toFixed(1)}</span>
+        </div>
+        <div className="h-1 w-full bg-red-950/30 overflow-hidden">
+            <div 
+                className={`h-full transition-all duration-500 ${color.replace('text', 'bg')}`} 
+                style={{ width: `${val}%` }}
+            />
+        </div>
     </div>
   );
 
   return (
-    <div className="p-4 border border-green-900/50 bg-black/80 font-mono text-green-500 w-full">
-      <div className="text-sm font-bold border-b border-green-900/50 mb-4 pb-1">SYSTEM RESOURCES</div>
-      <Bar label="CPU LOAD" val={cpu} color={cpu > 80 ? 'bg-red-600' : 'bg-green-500'} />
-      <Bar label="MEM USAGE" val={ram} color={ram > 80 ? 'bg-red-600' : 'bg-green-500'} />
-      <Bar label="NET TRAFFIC" val={network} color={network > 80 ? 'bg-red-600' : 'bg-green-500'} />
+    <div className="p-3 border border-red-900/40 bg-black/90 font-mono text-red-600 w-full blood-border">
+      <div className="text-[10px] font-bold border-b border-red-900/40 mb-3 pb-1 flex justify-between">
+        <span>VITAL_TELEMETRY</span>
+        <span className="animate-pulse">ONLINE</span>
+      </div>
       
-      <div className="mt-6 text-xs space-y-1 opacity-70">
-        <div className="flex justify-between">
-            <span>PROC_ID:</span>
-            <span>{Math.floor(Math.random() * 99999)}</span>
+      <Metric label="Sanguine Flow" val={vitals.pulse % 100} color="text-red-500" />
+      <Metric label="Data Corruption" val={vitals.corruption} color="text-red-600" />
+      <Metric label="Mem-Purge Depth" val={vitals.breach} color="text-orange-600" />
+
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        <div className="border border-red-900/20 p-1 text-[8px] bg-red-950/10">
+            <p className="opacity-50">HEARTBEAT</p>
+            <p className="text-red-400 font-bold">{vitals.pulse.toFixed(0)} BPM</p>
         </div>
-        <div className="flex justify-between">
-            <span>THREAD:</span>
-            <span>DAEMON_ROOT</span>
-        </div>
-        <div className="flex justify-between">
-            <span>PORT:</span>
-            <span className={level === SecurityLevel.SAFE ? 'text-green-500' : 'text-red-500'}>
-                {level === SecurityLevel.SAFE ? 'SECURE' : 'OPEN (22, 80, 443)'}
-            </span>
+        <div className="border border-red-900/20 p-1 text-[8px] bg-red-950/10">
+            <p className="opacity-50">SYNC_STATUS</p>
+            <p className="text-red-400 font-bold uppercase">{level}</p>
         </div>
       </div>
     </div>

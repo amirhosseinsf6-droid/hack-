@@ -1,6 +1,6 @@
 {
-  "name": "VOID - Terminal Override",
-  "description": "Ultra-immersive cybersecurity breach simulation using AI-generated logs and biometric interaction.",
+  "name": "SANGUINE - Protocol Breach",
+  "description": "An ultra-aggressive, blood-red cybersecurity override simulation. Mobile-optimized with biometric-reactive corruption.",
   "requestFramePermissions": [
     "camera",
     "microphone",

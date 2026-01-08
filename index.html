@@ -1,30 +1,33 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TERMINAL // OVERRIDE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>SANGUINE // OVERRIDE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
       body {
-        background-color: #000;
+        background-color: #050000;
         margin: 0;
         font-family: 'Share Tech Mono', monospace;
         overflow: hidden;
-        color: #0f0;
+        color: #ff1a1a;
+        touch-action: manipulation;
       }
 
-      /* CRT Effect */
+      /* Sanguine CRT Effect */
       .crt::before {
         content: " ";
         display: block;
         position: absolute;
         top: 0; left: 0; bottom: 0; right: 0;
-        background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+        background: linear-gradient(rgba(18, 0, 0, 0) 50%, rgba(0, 0, 0, 0.4) 50%), 
+                    linear-gradient(90deg, rgba(255, 0, 0, 0.08), rgba(0, 0, 0, 0.02), rgba(150, 0, 0, 0.08));
         z-index: 100;
-        background-size: 100% 2px, 3px 100%;
+        background-size: 100% 3px, 3px 100%;
         pointer-events: none;
       }
 
@@ -33,71 +36,67 @@
         display: block;
         position: absolute;
         top: 0; left: 0; bottom: 0; right: 0;
-        background: rgba(18, 16, 16, 0.1);
+        background: rgba(40, 0, 0, 0.1);
         opacity: 0;
         z-index: 100;
         pointer-events: none;
-        animation: flicker 0.15s infinite;
+        animation: flicker 0.2s infinite;
       }
 
       @keyframes flicker {
-        0% { opacity: 0.27861; }
-        5% { opacity: 0.34769; }
-        10% { opacity: 0.23604; }
-        15% { opacity: 0.90626; }
-        20% { opacity: 0.18128; }
-        25% { opacity: 0.83891; }
-        30% { opacity: 0.65583; }
-        35% { opacity: 0.57807; }
-        40% { opacity: 0.26559; }
-        45% { opacity: 0.84693; }
-        50% { opacity: 0.96019; }
-        55% { opacity: 0.08523; }
-        60% { opacity: 0.71056; }
-        65% { opacity: 0.73437; }
-        70% { opacity: 0.8523; }
-        75% { opacity: 0.11823; }
-        80% { opacity: 0.36714; }
-        85% { opacity: 0.01605; }
-        90% { opacity: 0.78483; }
-        95% { opacity: 0.54856; }
-        100% { opacity: 0.235; }
+        0% { opacity: 0.1; }
+        10% { opacity: 0.3; }
+        20% { opacity: 0.15; }
+        30% { opacity: 0.4; }
+        40% { opacity: 0.1; }
+        50% { opacity: 0.5; }
+        80% { opacity: 0.2; }
+        100% { opacity: 0.1; }
       }
 
       .glitch {
-        animation: glitch 1s linear infinite;
+        animation: glitch 0.8s linear infinite;
+        text-shadow: 2px 0 #800, -2px 0 #f00;
       }
 
       @keyframes glitch {
-        2%, 64% { transform: translate(2px, 0) skew(0deg); }
-        4%, 60% { transform: translate(-2px, 0) skew(0deg); }
-        62% { transform: translate(0, 0) skew(5deg); }
+        0% { transform: translate(0) }
+        20% { transform: translate(-2px, 2px) }
+        40% { transform: translate(-2px, -2px) }
+        60% { transform: translate(2px, 2px) }
+        80% { transform: translate(2px, -2px) }
+        100% { transform: translate(0) }
       }
 
       .scanlines {
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
-        background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+        background: linear-gradient(rgba(20, 0, 0, 0) 50%, rgba(0, 0, 0, 0.2) 50%);
         background-size: 100% 4px;
         z-index: 101;
         pointer-events: none;
       }
 
-      .no-scrollbar::-webkit-scrollbar { display: none; }
-      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
       .scanner-line {
-        height: 2px;
-        background: rgba(0, 255, 0, 0.5);
+        height: 4px;
+        background: linear-gradient(to right, transparent, #ff0000, transparent);
         position: absolute;
         width: 100%;
         z-index: 20;
-        animation: scan 3s linear infinite;
+        animation: scan 2s linear infinite;
+        box-shadow: 0 0 15px #f00;
       }
 
       @keyframes scan {
-        0% { top: 0; }
-        100% { top: 100%; }
+        0% { top: -10%; }
+        100% { top: 110%; }
+      }
+
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+      .blood-border {
+        box-shadow: inset 0 0 15px rgba(255, 0, 0, 0.3), 0 0 5px rgba(255, 0, 0, 0.5);
       }
     </style>
     <script type="importmap">
@@ -116,7 +115,6 @@
   <body class="crt">
     <div id="root"></div>
     <div class="scanlines"></div>
-    <!-- Entry script must be module to handle imports -->
     <script type="module" src="index.tsx"></script>
   </body>
 </html>
